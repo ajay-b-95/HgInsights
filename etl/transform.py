@@ -17,15 +17,19 @@ df = pd.read_sql("SELECT * FROM staging.customers", conn)
 
 # Handle missing values
 df.fillna({
+    'CustomerID': 'unknown_id',
+    'Age': '0',
+    'Gender': 'Unknown',
+    'Tenure': '0',
+    'MonthlyCharges': '0',
+    'ContractType': 'Unknown',
+    'InternetService': 'Unknown',
     'TotalCharges': '0',
-    'Email': 'unknown@example.com',
-    'Phone': '0000000000',
-    'Name': 'Anonymous'
+    'TechSupport': 'Unknown',
+    'Churn': 'Unknown'
 }, inplace=True)
 
-# Anonymize PII
-df['Email'] = df['Email'].apply(anonymize)
-df['Phone'] = df['Phone'].apply(anonymize)
-df['Name'] = df['Name'].apply(anonymize)
+df['Age'] = df['Phone'].apply(anonymize)
+df['Gender'] = df['Name'].apply(anonymize)
 
 df.to_sql("customers", conn, schema='reporting', if_exists='replace', index=False)
