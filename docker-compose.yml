@@ -6,6 +6,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
     volumes:
       - ./init:/docker-entrypoint-initdb.d
       - pgdata:/var/lib/postgresql/data
@@ -15,9 +16,13 @@ services:
   airflow-webserver:
     image: apache/airflow:2.8.1
     restart: always
-    depends_on: [postgres]
+    depends_on:
+      - postgres
+      - airflow-scheduler
     environment:
       - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://postgres:postgres@postgres:5432/postgres
     volumes:
       - ./dags:/opt/airflow/dags
     ports:
@@ -27,21 +32,35 @@ services:
   airflow-scheduler:
     image: apache/airflow:2.8.1
     restart: always
-    depends_on: [postgres]
+    depends_on:
+      - postgres
+    environment:
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://postgres:postgres@postgres:5432/postgres
     volumes:
       - ./dags:/opt/airflow/dags
     command: scheduler
 
   etl:
     build: ./etl
-    depends_on: [postgres]
+    depends_on:
+      - postgres
     volumes:
       - ./etl:/etl
+      - ./data:/data
 
   metabase:
     image: metabase/metabase
     ports:
       - "3000:3000"
+    environment:
+      - MB_DB_TYPE=postgres
+      - MB_DB_DBNAME=postgres
+      - MB_DB_PORT=5432
+      - MB_DB_USER=postgres
+      - MB_DB_PASS=postgres
+      - MB_DB_HOST=postgres
 
 volumes:
   pgdata:
