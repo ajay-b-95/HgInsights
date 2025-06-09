@@ -1,0 +1,47 @@
+version: '3'
+
+services:
+  postgres:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - ./init:/docker-entrypoint-initdb.d
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  airflow-webserver:
+    image: apache/airflow:2.8.1
+    restart: always
+    depends_on: [postgres]
+    environment:
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+    volumes:
+      - ./dags:/opt/airflow/dags
+    ports:
+      - "8080:8080"
+    command: webserver
+
+  airflow-scheduler:
+    image: apache/airflow:2.8.1
+    restart: always
+    depends_on: [postgres]
+    volumes:
+      - ./dags:/opt/airflow/dags
+    command: scheduler
+
+  etl:
+    build: ./etl
+    depends_on: [postgres]
+    volumes:
+      - ./etl:/etl
+
+  metabase:
+    image: metabase/metabase
+    ports:
+      - "3000:3000"
+
+volumes:
+  pgdata:
