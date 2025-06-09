@@ -21,8 +21,7 @@ Tools used:
 git clone https://github.com/your-username/elt-pipeline-demo.git
 cd elt-pipeline-demo
 
-Open codespace and run the dockerfile
-with
+# Open codespace and run the dockerfile with
 docker-compose up --build
-services with Ports can be vieved and changed
+#services with Ports can be vieved and changed
 
