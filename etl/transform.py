@@ -25,6 +25,7 @@ df = pd.read_csv('/data/telecom_churn.csv')
 print('df to show')
 print(df)
 
+
 #replace "None" with Null in df
 df.replace("None", pd.NA, inplace=True)
 
@@ -32,6 +33,10 @@ df.replace("None", pd.NA, inplace=True)
 print(df.info())
 print(df.describe())
 print(df.isnull().sum())
+
+#writing raw to staging area
+df.to_sql("customers", engine, schema='staging', if_exists='replace', index=False)
+
 
 # Handle missing values (we can impute the standard values if givn by business
 df.fillna({
