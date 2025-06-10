@@ -1,4 +1,4 @@
-version: '3'
+version: '3' # Can be removed if you prefer, but not causing the current error.
 
 services:
   postgres:
@@ -12,13 +12,41 @@ services:
       - pgdata:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      retries: 5
+
+  airflow-init:
+    image: apache/airflow:2.8.1
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # Crucial: These must have the underscore prefix for the entrypoint.sh
+      - "AIRFLOW__CORE__LOAD_EXAMPLES=False"
+      - "AIRFLOW__CORE__EXECUTOR=LocalExecutor"
+      - "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://postgres:postgres@postgres:5432/postgres"
+      - "_AIRFLOW_DB_UPGRADE=true"
+      - "_AIRFLOW_WWW_USER_CREATE=true"
+      - "_AIRFLOW_WWW_USER_USERNAME=airflow" # Keep the underscore
+      - "_AIRFLOW_WWW_USER_PASSWORD=airflow" # Keep the underscore
+    volumes:
+      - ./dags:/opt/airflow/dags
+    # Simplify the command. The entrypoint.sh will handle user creation
+    # because _AIRFLOW_WWW_USER_CREATE=true and the username/password are set.
+    command: ["airflow", "db", "upgrade"] # Use list format for robustness
 
   airflow-webserver:
     image: apache/airflow:2.8.1
     restart: always
     depends_on:
-      - postgres
-      - airflow-scheduler
+      airflow-init:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      airflow-scheduler:
+        condition: service_started
     environment:
       - AIRFLOW__CORE__LOAD_EXAMPLES=False
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
@@ -28,12 +56,20 @@ services:
     ports:
       - "8080:8080"
     command: webserver
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
 
   airflow-scheduler:
     image: apache/airflow:2.8.1
     restart: always
     depends_on:
-      - postgres
+      airflow-init:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
     environment:
       - AIRFLOW__CORE__LOAD_EXAMPLES=False
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
@@ -45,7 +81,8 @@ services:
   etl:
     build: ./etl
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     volumes:
       - ./etl:/etl
       - ./data:/data
