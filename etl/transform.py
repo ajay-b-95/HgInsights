@@ -25,6 +25,8 @@ df = pd.read_csv('/data/telecom_churn.csv')
 print('df to show')
 print(df)
 
+#replace "None" with Null in df
+df.replace("None", pd.NA, inplace=True)
 
 #Basic Checks
 print(df.info())
@@ -52,9 +54,7 @@ df['MonthlyCharges'].fillna(df['MonthlyCharges'].median(), inplace=True)
 df['TotalCharges'].fillna('0', inplace=True) 
 
 
-# compute the KPIs 
-churn_rate = df['Churn'].value_counts(normalize=True)['Yes'] * 100
-print(f"Churn Rate: {churn_rate:.2f}%")
+print(df)
 
 avg_revenue = df['MonthlyCharges'].mean()
 print(f"Average Monthly Charges: ₹{avg_revenue:.2f}")
