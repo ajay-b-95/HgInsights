@@ -13,7 +13,7 @@ dag = DAG(
 
 extract = BashOperator(
     task_id='load_csv',
-    bash_command='psql -h postgres -U postgres -d postgres -c "\copy staging.customers FROM \'/data/telecom_churn.csv\' DELIMITER \',\' CSV HEADER;"',
+    bash_command='psql -h postgres -U postgres -d postgres -c "\\copy staging.customers FROM \'/data/telecom_churn.csv\' DELIMITER \',\' CSV HEADER;"',
     dag=dag
 )
 
