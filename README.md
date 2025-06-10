@@ -18,10 +18,15 @@ Tools used:
 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/elt-pipeline-demo.git
-cd elt-pipeline-demo
-
+clone the git repo
+Open the repo in codespace
+run docker build command - > doker-compose build
+run docker up command - > docker-compose up
+wait 2 mins
+you will see 3 ports running  under ports
+3000: metabase -> click > sign in >connect postgre via credentials
+8080: airfow  -> click > sign in >connect airlfow via credentials
 # Open codespace and run the dockerfile with
 docker-compose up --build
-#services with Ports can be vieved and changed
+#services with Ports can be viewed and changed.
 
